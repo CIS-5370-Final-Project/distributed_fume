@@ -1,7 +1,9 @@
 import sys
 import random
 import math
-import redis
+import argparse
+import os
+
 sys.path.append('generators')
 sys.path.append('helper_functions')
 sys.path.append('fume')
@@ -18,34 +20,66 @@ import globals as g
 import fume.markov_model as mm
 import fume.fuzzing_engine as fe
 import fume.run_target as rt
+import fume.sync_manager as sm
 
-# Calculate X1 from the construction intensity
+
 def calculate_X1():
     g.X1 = 1 / g.CONSTRUCTION_INTENSITY
 
-# Calculate X2 from the fuzzing intensity
+
 def calculate_X2():
     g.X2 = 1 - g.FUZZING_INTENSITY
 
-# Calculate X3 from the fuzzing intensity
+
 def calculate_X3():
     g.X3 = 1 - (2 * math.log(1 + g.FUZZING_INTENSITY, 10))
 
-def main():
-    # Try to parse the supplied config file.
-    # If one is not supplied, use the default values.
-    try:
-        config_f = open(sys.argv[1], 'r')
-        config = config_f.readlines()
-        pcf.parse_config_file(config)
-        config_f.close()
-    except FileNotFoundError:
-        print("Could not find the supplied file: %s" % sys.argv[1])
-        exit(-1)
-    except IndexError:
-        pass
 
-    # Calculate X1, X2, and X3 only if the user did not supply those values
+def main():
+    parser = argparse.ArgumentParser(description='FUME: Fuzzing MQTT Brokers')
+
+    parser.add_argument('config_file', nargs='?', help='Path to configuration file')
+
+    parser.add_argument('-o', '--output', help='Output directory for sync data (Required for parallel mode)',
+                        default='fume_sync')
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-M', '--master', help='Master instance name')
+    group.add_argument('-S', '--secondary', help='Secondary instance name')
+
+    args = parser.parse_args()
+
+    if args.secondary and args.config_file:
+        print("Error: Secondary instances cannot use a configuration file.")
+        exit(-1)
+
+    if args.config_file:
+        try:
+            config_f = open(args.config_file, 'r')
+            config = config_f.readlines()
+            pcf.parse_config_file(config)
+            config_f.close()
+        except FileNotFoundError:
+            print("Could not find the supplied file: %s" % args.config_file)
+            exit(-1)
+
+    g.SYNC_DIRECTORY = args.output
+
+    if args.master:
+        g.INSTANCE_ID = args.master
+        g.IS_MASTER = True
+        print(f"[*] Mode: MASTER ({g.INSTANCE_ID})")
+    elif args.secondary:
+        g.INSTANCE_ID = args.secondary
+        g.IS_MASTER = False
+        print(f"[*] Mode: SECONDARY ({g.INSTANCE_ID})")
+    else:
+        g.INSTANCE_ID = "fuzzer01"
+        g.IS_MASTER = True
+        print(f"[*] Mode: STANDALONE (Defaulting to {g.INSTANCE_ID})")
+
+    g.sync_manager = sm.SyncManager()
+
     if g.user_supplied_X[0] == 0:
         calculate_X1()
     if g.user_supplied_X[1] == 0:
@@ -53,33 +87,16 @@ def main():
     if g.user_supplied_X[2] == 0:
         calculate_X3()
 
-    # Redis connection
-    if g.USE_REDIS:
-        try:
-            g.redis_conn = redis.Redis(host=g.REDIS_HOST, port=g.REDIS_PORT, db=0)
-            g.redis_conn.ping()
-            print("Connected to Redis at %s:%d" % (g.REDIS_HOST, g.REDIS_PORT))
-        except Exception as e:
-            print("Error connecting to Redis: %s" % e)
-            exit(-1)
-
-    # Validate all parameters
     vfp.validate_all()
 
-    # Create crash directory if needed
-    cl.create_crash_directory()
-
-    # Print fuzzing configuration
     pc.print_configuration()
 
-    # Initialize Markov Model
     markov_model = mm.initialize_markov_model()
 
-    # Start the target
     rt.run_target()
 
-    # Run the fuzzing loop
     fe.run_fuzzing_engine(markov_model)
+
 
 if __name__ == "__main__":
     main()

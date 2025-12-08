@@ -95,18 +95,6 @@ def parse_config_file(config):
         elif arg[0] == 'MAXIMUM_PAYLOAD_LENGTH':
             g.MAXIMUM_PAYLOAD_LENGTH = int(arg[1])
 
-        elif arg[0] == 'WORKER_ID':
-            g.WORKER_ID = int(arg[1])
-
-        elif arg[0] == 'USE_REDIS':
-            g.USE_REDIS = int(arg[1])
-
-        elif arg[0] == 'REDIS_HOST':
-            g.REDIS_HOST = arg[1]
-
-        elif arg[0] == 'REDIS_PORT':
-            g.REDIS_PORT = int(arg[1])
-
         else:
             print("Unrecognized key in config file: %s" % arg[0])
             exit(-1)

@@ -25,6 +25,7 @@ def check_connection():
 def run_target():
     if g.START_COMMAND == "":
         return
+
     process = subprocess.Popen(g.START_COMMAND.split(), stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 
     thread = threading.Thread(target=fcr.handle_console_response, args=(process,))

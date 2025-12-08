@@ -1,4 +1,3 @@
-import globals as g
 import random
 import binascii
 import string
@@ -46,12 +45,7 @@ class ConnectVariableHeader(Packet):
 class ConnectPayload(Packet):
     def __init__(self, header):
         self.clientid_len = random.randint(0, 30)
-        random_part_hex = self.getAlphanumHexString(self.clientid_len)
-        worker_prefix = "w%d-" % g.WORKER_ID
-        prefix_hex = ["%.2x" % ord(c) for c in worker_prefix]
-        full_client_id_hex = prefix_hex + random_part_hex
-        self.clientid = ["%.4x" % len(full_client_id_hex)] + full_client_id_hex
-
+        self.clientid = self.toEncodedString(None, self.clientid_len)
         self.will_properties = Properties([0x18, 0x01, 0x02, 0x03, 0x08, 0x09, 0x26])
         self.will_topic_length = random.randint(0, 30)
         self.will_topic = self.toEncodedString(None, self.will_topic_length)
