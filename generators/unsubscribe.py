@@ -4,6 +4,7 @@ from packet import packetTest
 from properties import Properties
 import random
 
+
 class UnsubscribePayload(Packet):
     def __init__(self, protocol_version):
         super().__init__()
@@ -14,6 +15,7 @@ class UnsubscribePayload(Packet):
             topicLength = random.randint(0, 30)
             topic = self.toEncodedString(None, topicLength)
             self.payload.append(topic)
+
 
 class UnsubscribeVariableHeader(Packet):
     def __init__(self, protocol_version):
@@ -26,8 +28,9 @@ class UnsubscribeVariableHeader(Packet):
         if protocol_version == 5:
             self.payload.append(self.properties.toString())
 
+
 class Unsubscribe(Packet):
-    def __init__(self, protocol_version = None):
+    def __init__(self, protocol_version=None):
         super().__init__()
 
         if protocol_version is None:
@@ -37,9 +40,18 @@ class Unsubscribe(Packet):
         self.variable_header = UnsubscribeVariableHeader(protocol_version)
         self.unsubscribe_payload = UnsubscribePayload(protocol_version)
 
-        remaining_length = self.variable_header.getByteLength() + self.unsubscribe_payload.getByteLength()
+        remaining_length = (
+            self.variable_header.getByteLength()
+            + self.unsubscribe_payload.getByteLength()
+        )
 
-        self.payload = [self.fixed_header, self.toVariableByte("%x" % remaining_length), self.variable_header.toString(), self.unsubscribe_payload.toString()]
-        
+        self.payload = [
+            self.fixed_header,
+            self.toVariableByte("%x" % remaining_length),
+            self.variable_header.toString(),
+            self.unsubscribe_payload.toString(),
+        ]
+
+
 if __name__ == "__main__":
     packetTest([Connect, Unsubscribe], 300)

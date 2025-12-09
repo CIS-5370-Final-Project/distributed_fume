@@ -4,6 +4,7 @@ from packet import packetTest
 from properties import Properties
 import random
 
+
 class SubscribePayload(Packet):
     def __init__(self, protocol_version):
         super().__init__()
@@ -24,12 +25,23 @@ class SubscribePayload(Packet):
                 no_local = 0
                 retain_as_published = 0
                 retain_handling = 0
-            
-            subscription_options_tmp = [0b00, (retain_handling >> 1) & 1, retain_handling & 1, retain_as_published, no_local, (topic_qos >> 1) & 1, topic_qos & 1]
 
-            subscription_options = ["%.2x" % int("".join(bin(s)[2:] for s in subscription_options_tmp), 2)]
-            
+            subscription_options_tmp = [
+                0b00,
+                (retain_handling >> 1) & 1,
+                retain_handling & 1,
+                retain_as_published,
+                no_local,
+                (topic_qos >> 1) & 1,
+                topic_qos & 1,
+            ]
+
+            subscription_options = [
+                "%.2x" % int("".join(bin(s)[2:] for s in subscription_options_tmp), 2)
+            ]
+
             self.payload.append(subscription_options)
+
 
 class SubscribeVariableHeader(Packet):
     def __init__(self, protocol_version):
@@ -38,12 +50,13 @@ class SubscribeVariableHeader(Packet):
         self.packet_identifier = self.toBinaryData(None, 2, True)
         self.payload.append(self.packet_identifier)
 
-        self.properties = Properties([0x0b, 0x26])
+        self.properties = Properties([0x0B, 0x26])
         if protocol_version == 5:
             self.payload.append(self.properties.toString())
 
+
 class Subscribe(Packet):
-    def __init__(self, protocol_version = None):
+    def __init__(self, protocol_version=None):
         super().__init__()
 
         if protocol_version is None:
@@ -53,9 +66,18 @@ class Subscribe(Packet):
         self.variable_header = SubscribeVariableHeader(protocol_version)
         self.subscribe_payload = SubscribePayload(protocol_version)
 
-        remaining_length = self.variable_header.getByteLength() + self.subscribe_payload.getByteLength()
+        remaining_length = (
+            self.variable_header.getByteLength()
+            + self.subscribe_payload.getByteLength()
+        )
 
-        self.payload = [self.fixed_header, self.toVariableByte("%x" % remaining_length), self.variable_header.toString(), self.subscribe_payload.toString()]
-        
+        self.payload = [
+            self.fixed_header,
+            self.toVariableByte("%x" % remaining_length),
+            self.variable_header.toString(),
+            self.subscribe_payload.toString(),
+        ]
+
+
 if __name__ == "__main__":
     packetTest([Connect, Subscribe], 300)

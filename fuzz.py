@@ -1,26 +1,20 @@
-import sys
-import random
-import math
 import argparse
-import os
+import math
+import sys
 
-sys.path.append('generators')
-sys.path.append('helper_functions')
-sys.path.append('fume')
-sys.path.append('parsers')
+sys.path.append("generators")
+sys.path.append("helper_functions")
+sys.path.append("fume")
+sys.path.append("parsers")
 
-from generators.auth import Auth
-import helper_functions.validate_fuzzing_params as vfp
-import helper_functions.parse_config_file as pcf
-import helper_functions.print_configuration as pc
-import helper_functions.crash_logging as cl
-
-import globals as g
-
-import fume.markov_model as mm
 import fume.fuzzing_engine as fe
+import fume.markov_model as mm
 import fume.run_target as rt
 import fume.sync_manager as sm
+import globals as g
+import helper_functions.parse_config_file as pcf
+import helper_functions.print_configuration as pc
+import helper_functions.validate_fuzzing_params as vfp
 
 
 def calculate_X1():
@@ -36,26 +30,30 @@ def calculate_X3():
 
 
 def main():
-    parser = argparse.ArgumentParser(description='FUME: Fuzzing MQTT Brokers')
+    parser = argparse.ArgumentParser(description="FUME: Fuzzing MQTT Brokers")
 
-    parser.add_argument('config_file', nargs='?', help='Path to configuration file')
+    parser.add_argument("config_file", nargs="?", help="Path to configuration file")
 
-    parser.add_argument('-o', '--output', help='Output directory for sync data (Required for parallel mode)',
-                        default='fume_sync')
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="Output directory for sync data (Required for parallel mode)",
+        default="fume_sync",
+    )
 
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('-M', '--master', help='Master instance name')
-    group.add_argument('-S', '--secondary', help='Secondary instance name')
+    group.add_argument("-M", "--master", help="Master instance name")
+    group.add_argument("-S", "--secondary", help="Secondary instance name")
 
     args = parser.parse_args()
 
-    if args.secondary and args.config_file:
-        print("Error: Secondary instances cannot use a configuration file.")
-        exit(-1)
+    # if args.secondary and args.config_file:
+    #     print("Error: Secondary instances cannot use a configuration file.")
+    #     exit(-1)
 
     if args.config_file:
         try:
-            config_f = open(args.config_file, 'r')
+            config_f = open(args.config_file, "r")
             config = config_f.readlines()
             pcf.parse_config_file(config)
             config_f.close()

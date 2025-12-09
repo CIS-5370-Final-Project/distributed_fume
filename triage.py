@@ -9,7 +9,6 @@ import sys
 import time
 import subprocess
 import random
-from fume.run_target import check_connection 
 import globals as g
 import helper_functions.print_verbosity as pv
 import helper_functions.parse_config_file as pcf
@@ -18,9 +17,10 @@ import fume.run_target as rt
 buffer = []
 buffer_len = 10
 
+
 # Sometimes the broker will crash a moment or 2 after a bad packet is sent.
 # If a new (non-buggy) packet has already been sent by then, we may falsely
-# believe the new packet is responsible for the crash. Therefore, we use a 
+# believe the new packet is responsible for the crash. Therefore, we use a
 # buffer to hold the most recent packets and call this function to verify
 # the responsible packet.
 def check_buffer():
@@ -33,7 +33,8 @@ def check_buffer():
 
     # Either false positive, or the buffer did not capture the correct packet :(
     pv.normal_print("A crash was detected, but it could not be replicated.")
-    return None 
+    return None
+
 
 # Check the crash log for the payload which is responsible for the crash.
 def check_crash_log(crash_log):
@@ -43,8 +44,11 @@ def check_crash_log(crash_log):
         if status == False:
             pv.normal_print("A crash was detected from the following input: %s" % c)
             return c_bytes
-    pv.print_error("The crash log does not seem to contain a payload which crashes this target.")
+    pv.print_error(
+        "The crash log does not seem to contain a payload which crashes this target."
+    )
     exit(-1)
+
 
 def update_buffer(input):
     global buffer
@@ -52,14 +56,17 @@ def update_buffer(input):
     if len(buffer) > buffer_len:
         buffer.pop(0)
 
+
 def start_target():
-    process = subprocess.Popen(g.START_COMMAND.split(), stdout = subprocess.DEVNULL, stderr = subprocess.STDOUT)
+    process = subprocess.Popen(
+        g.START_COMMAND.split(), stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT
+    )
 
     # Try to connect to the target
     pv.verbose_print("Starting target...")
     for i in range(10):
         pv.debug_print("Attempt %d" % (i + 1))
-        time.sleep(g.TARGET_START_TIME * ((i + 1)/5))
+        time.sleep(g.TARGET_START_TIME * ((i + 1) / 5))
         alive = rt.check_connection()
         if alive:
             pv.verbose_print("Target started successfully!")
@@ -68,15 +75,16 @@ def start_target():
     pv.print_error("Could not start target")
     exit(-1)
 
+
 # Check if the input causes a crash. If it does, return True.
 # Else return False
-def check_input(input, sleep_time = 0.01):
+def check_input(input, sleep_time=0.01):
     # TODO there may be times were the close() function fails because the send() function crashes the broker. We need to consider this.
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     while True:
         try:
             s.connect((g.TARGET_ADDR, g.TARGET_PORT))
-            s.send(input)      
+            s.send(input)
             s.close()
             break
         except ConnectionResetError:
@@ -86,8 +94,9 @@ def check_input(input, sleep_time = 0.01):
 
     time.sleep(sleep_time)
     return rt.check_connection()
-    
-# Return an input with a block of size mutate_size changed to 
+
+
+# Return an input with a block of size mutate_size changed to
 # 'A' bytes, beginning at the index.
 def mutate_block(input, index, mutate_size):
     # TODO
@@ -98,13 +107,15 @@ def mutate_block(input, index, mutate_size):
 def delete_random(input, delete_size):
     for d in range(delete_size):
         index = random.randint(0, len(input) - 1)
-        input = input[:index] + input[index + 1:]
+        input = input[:index] + input[index + 1 :]
     return input
+
 
 # Return an input with a block of size delete_size removed,
 # beginning at the index.
 def delete_block(input, index, delete_size):
-    return input[:index] + input[index + delete_size:]
+    return input[:index] + input[index + delete_size :]
+
 
 def check_for_crash(input, candidates, local_candidates):
     crash_status = check_input(input)
@@ -112,13 +123,12 @@ def check_for_crash(input, candidates, local_candidates):
 
     # False crash status means the target actually crashed
     if crash_status is False:
-
         # Restart the target
         start_target()
 
         # Check which input actually caused the crash
         new_input = check_buffer()
-        
+
         # If None, then the target did not crash
         if new_input is None:
             return
@@ -128,8 +138,7 @@ def check_for_crash(input, candidates, local_candidates):
 
         # Log the input if it is unique
         if new_input not in candidates:
-
-            # In the fast version, we only log a single candidate, and 
+            # In the fast version, we only log a single candidate, and
             # we only update that candidate when we find a smaller one
             if g.TRIAGE_FAST:
                 if len(candidates) == 0:
@@ -138,7 +147,7 @@ def check_for_crash(input, candidates, local_candidates):
                 elif len(new_input) < len(candidates[0]):
                     candidates[0] = new_input
                     pv.normal_print("Found new crash: %s" % new_input.hex())
-                
+
             # In the slow version, we log all new candidates that we find
             else:
                 candidates.append(new_input)
@@ -151,7 +160,7 @@ def check_for_crash(input, candidates, local_candidates):
 # Triage the current input and return a tuple of (reduced_input, new_candidates)
 # where reduced_input is a smaller input that still crashes the target,
 # and new_candidates is any intermediate inputs we found on the way
-def triage(input, candidates = [], triage_level = 1):
+def triage(input, candidates=[], triage_level=1):
     if triage_level > g.TRIAGE_MAX_DEPTH:
         return input, []
 
@@ -204,17 +213,23 @@ def triage(input, candidates = [], triage_level = 1):
     end_size = len(input)
     if end_size < start_size:
         reduction = 100 * (1 - (float(end_size) / float(start_size)))
-        pv.normal_print("Input size reduced by %f%% (we are %d triage levels deep)" % (reduction, triage_level))
+        pv.normal_print(
+            "Input size reduced by %f%% (we are %d triage levels deep)"
+            % (reduction, triage_level)
+        )
     else:
-        pv.normal_print("Input size did not change (we are %d triage levels deep)" % triage_level)
+        pv.normal_print(
+            "Input size did not change (we are %d triage levels deep)" % triage_level
+        )
 
     # Return the new input
     return input, local_candidates
-    
+
+
 if __name__ == "__main__":
     # Try to parse the supplied config file.
     try:
-        config_f = open(sys.argv[2], 'r')
+        config_f = open(sys.argv[2], "r")
         config = config_f.readlines()
         pcf.parse_config_file(config)
         config_f.close()
@@ -227,7 +242,7 @@ if __name__ == "__main__":
 
     # Load the crash log
     try:
-        crash_f = open(sys.argv[1], 'r')
+        crash_f = open(sys.argv[1], "r")
         crash_log = crash_f.readlines()
         config_f.close()
     except FileNotFoundError:

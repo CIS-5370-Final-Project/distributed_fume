@@ -1,0 +1,10 @@
+.git
+.gitignore
+*.pyc
+__pycache__
+crashes/*
+sync_dir/*
+fume_sync/*
+*.md
+images/
+.dockerignore

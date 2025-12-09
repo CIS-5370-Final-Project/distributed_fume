@@ -4,6 +4,7 @@ import random
 import math
 import time
 
+
 class Packet:
     def __init__(self):
         self.payload = []
@@ -18,7 +19,7 @@ class Packet:
                 else:
                     l.append(n)
         return l
-        
+
     def toString(self):
         return "".join(self.toList())
 
@@ -42,13 +43,13 @@ class Packet:
 
         return varByte
 
-    # Calculate the length of the payload and add it to the beginning 
+    # Calculate the length of the payload and add it to the beginning
     # of the payload.
     def prependPayloadLength(self):
         payload_length = self.toVariableByte("%x" % (self.getByteLength()))
         self.payload.insert(0, payload_length)
 
-    def getAlphanumHexString(self, stringLength, userstring = None):
+    def getAlphanumHexString(self, stringLength, userstring=None):
         if userstring is not None:
             return ["%.2x" % ord(s) for s in userstring]
 
@@ -59,7 +60,7 @@ class Packet:
     # stringLength: a 2-byte integer
     # userstring: an optional user-defined string. If not defined, the string is random.
     # Return: an encoding in the format [ID, Len, String] or [Len, String]
-    def toEncodedString(self, identifier, stringLength, userstring = None):
+    def toEncodedString(self, identifier, stringLength, userstring=None):
         if userstring is None:
             userstring = self.getAlphanumHexString(stringLength)
         else:
@@ -72,7 +73,13 @@ class Packet:
     # string1Length/string2Length: 2-byte integers
     # Return: an encoding in the format [ID, Len1, String1, Len2, String2]
     def toEncodedStringPair(self, identifier, string1Length, string2Length):
-        return ["%.2x" % identifier, "%.4x" % string1Length, self.getAlphanumHexString(string1Length), "%.4x" % string2Length, self.getAlphanumHexString(string2Length)]
+        return [
+            "%.2x" % identifier,
+            "%.4x" % string1Length,
+            self.getAlphanumHexString(string1Length),
+            "%.4x" % string2Length,
+            self.getAlphanumHexString(string2Length),
+        ]
 
     # identifier: a 1-byte integer (may be null)
     # byteLength: a 2-byte integer
@@ -84,16 +91,30 @@ class Packet:
     #   - [ID, Bytes]
     #   - [Len, Bytes]
     #   - [Bytes]
-    def toBinaryData(self, identifier, byteLength, omitLength = False, maxBits = 8, minValue = 0):
-        
+    def toBinaryData(
+        self, identifier, byteLength, omitLength=False, maxBits=8, minValue=0
+    ):
         if identifier is None:
-            fullData = ["%.4x" % byteLength, ["%.2x" % max(minValue, random.getrandbits(maxBits)) for i in range(byteLength)]]
+            fullData = [
+                "%.4x" % byteLength,
+                [
+                    "%.2x" % max(minValue, random.getrandbits(maxBits))
+                    for i in range(byteLength)
+                ],
+            ]
             if omitLength:
                 return fullData[1]
             else:
                 return fullData
         else:
-            fullData = ["%.2x" % identifier, "%.4x" % byteLength, ["%.2x" % max(minValue, random.getrandbits(maxBits)) for i in range(byteLength)]]
+            fullData = [
+                "%.2x" % identifier,
+                "%.4x" % byteLength,
+                [
+                    "%.2x" % max(minValue, random.getrandbits(maxBits))
+                    for i in range(byteLength)
+                ],
+            ]
             if omitLength:
                 return [fullData[0], fullData[2]]
             else:
@@ -104,8 +125,9 @@ class Packet:
         if random.getrandbits(1) == 0:
             self.payload.append(newPacket)
 
+
 # Send a payload to a broker.
-def sendToBroker(host, port, payload, silenceError = False, killOnError = True):
+def sendToBroker(host, port, payload, silenceError=False, killOnError=True):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         s.connect((host, port))
@@ -129,7 +151,8 @@ def sendToBroker(host, port, payload, silenceError = False, killOnError = True):
         pass
     s.close()
 
-def packetTest(packetTypes, runs = 10, verbose = False):
+
+def packetTest(packetTypes, runs=10, verbose=False):
     host = "127.0.0.1"
     port = 1883
 

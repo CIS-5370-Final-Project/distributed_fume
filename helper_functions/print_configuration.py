@@ -1,6 +1,7 @@
 import globals as g
 import helper_functions.print_verbosity as pv
 
+
 # Print configuration parameters
 def print_configuration():
     pv.normal_print("----------------------------------------------")
@@ -14,8 +15,13 @@ def print_configuration():
     if g.VERBOSITY == 1:
         return
     pv.verbose_print("CHOOSE_MUTATION: %s" % g.CHOOSE_MUTATION)
-    pv.verbose_print("PACKET_SELECTION_UNIFORM_DISTRIBUTION: %s" % g.PACKET_SELECTION_UNIFORM_DISTRIBUTION)
-    pv.verbose_print("FUZZING_STATE_UNIFORM_DISTRIBUTION: %s" % g.FUZZING_STATE_UNIFORM_DISTRIBUTION)
+    pv.verbose_print(
+        "PACKET_SELECTION_UNIFORM_DISTRIBUTION: %s"
+        % g.PACKET_SELECTION_UNIFORM_DISTRIBUTION
+    )
+    pv.verbose_print(
+        "FUZZING_STATE_UNIFORM_DISTRIBUTION: %s" % g.FUZZING_STATE_UNIFORM_DISTRIBUTION
+    )
     pv.verbose_print("FUZZING INTENSITY: %s" % g.FUZZING_INTENSITY)
     pv.verbose_print("CONSTRUCTION_INTENSITY: %s" % g.CONSTRUCTION_INTENSITY)
     pv.verbose_print("b: %s" % g.b)

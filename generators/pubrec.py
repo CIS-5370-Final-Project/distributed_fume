@@ -4,6 +4,7 @@ from packet import packetTest
 from properties import Properties
 import random
 
+
 class PubrecVariableHeader(Packet):
     def __init__(self, protocol_version):
         super().__init__()
@@ -15,12 +16,13 @@ class PubrecVariableHeader(Packet):
         if protocol_version == 5:
             self.payload.append(self.reason_code)
 
-        self.properties = Properties([0x1f, 0x26])
+        self.properties = Properties([0x1F, 0x26])
         if protocol_version == 5:
             self.payload.append(self.properties.toString())
 
+
 class Pubrec(Packet):
-    def __init__(self, protocol_version = None):
+    def __init__(self, protocol_version=None):
         super().__init__()
 
         if protocol_version is None:
@@ -30,7 +32,12 @@ class Pubrec(Packet):
         self.variable_header = PubrecVariableHeader(protocol_version)
         remaining_length = self.variable_header.getByteLength()
 
-        self.payload = [self.fixed_header, self.toVariableByte("%x" % remaining_length), self.variable_header.toString()]
+        self.payload = [
+            self.fixed_header,
+            self.toVariableByte("%x" % remaining_length),
+            self.variable_header.toString(),
+        ]
+
 
 if __name__ == "__main__":
     packetTest([Connect, Pubrec], 300)

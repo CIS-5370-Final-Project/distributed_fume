@@ -1,0 +1,23 @@
+# Sync folder
+fume_sync/
+sync_dir/
+crashes/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+
+# Crashes (optional - you may want to track these)
+crashes/
+
+# UV
+uv.lock

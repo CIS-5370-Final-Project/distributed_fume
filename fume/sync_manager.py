@@ -3,7 +3,6 @@ import glob
 import time
 import globals as g
 import helper_functions.print_verbosity as pv
-import binascii
 
 
 class SyncManager:
@@ -35,7 +34,9 @@ class SyncManager:
                 if type(payload) == bytearray:
                     p_hex = payload.hex()
                 elif type(payload) == list:
-                    p_str = "".join([p if isinstance(p, str) else p.toString() for p in payload])
+                    p_str = "".join(
+                        [p if isinstance(p, str) else p.toString() for p in payload]
+                    )
                     p_hex = p_str
                 else:
                     p_hex = str(payload)
@@ -93,6 +94,8 @@ class SyncManager:
                 pv.debug_print(f"Error syncing file {filepath}: {e}")
 
         if new_count > 0:
-            pv.normal_print(f"[SYNC] Imported {new_count} new inputs from neighbor instances.")
+            pv.normal_print(
+                f"[SYNC] Imported {new_count} new inputs from neighbor instances."
+            )
 
         self.last_sync_time = time.time()

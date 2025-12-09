@@ -13,15 +13,16 @@ def check_similarity(line):
 
 
 def handle_console_response(proc):
-    for line in iter(proc.stdout.readline, b''):
-
+    for line in iter(proc.stdout.readline, b""):
         if line not in g.console_response_log:
-
             similarity = check_similarity(line)
 
             if similarity is False and type(g.payload) is bytearray:
                 g.console_response_log[line] = g.payload
-                pv.normal_print("Found new console response (%d found)" % len(g.console_response_log.keys()))
+                pv.normal_print(
+                    "Found new console response (%d found)"
+                    % len(g.console_response_log.keys())
+                )
 
                 if g.sync_manager:
                     g.sync_manager.save_input("console", str(line), g.payload)

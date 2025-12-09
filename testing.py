@@ -2,6 +2,7 @@ import socket
 
 import globals as g
 
+
 # Check if the connection is alive
 def check_connection():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -17,5 +18,6 @@ def check_connection():
         except ConnectionResetError:
             print("CRE")
             continue
+
 
 check_connection()

@@ -1,0 +1,37 @@
+services:
+  fuzzer-master:
+    build: .
+    container_name: dfume-master
+    environment:
+      - FUZZER_MODE=master
+      - INSTANCE_NAME=fuzzer_master
+    volumes:
+      - fume_sync:/app/fume_sync
+    networks:
+      - fuzzer-network
+    restart: unless-stopped
+  fuzzer-secondary:
+    build: .
+    container_name: dfume-secondary
+    environment:
+      - FUZZER_MODE=secondary
+      - INSTANCE_NAME=fuzzer_secondary
+    volumes:
+      - fume_sync:/app/fume_sync
+    networks:
+      - fuzzer-network
+    depends_on:
+      - fuzzer-master
+    restart: unless-stopped
+
+volumes:
+  fume_sync:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/fume_sync
+
+networks:
+  fuzzer-network:
+    driver: bridge
