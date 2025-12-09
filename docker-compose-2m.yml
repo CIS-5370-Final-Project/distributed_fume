@@ -1,0 +1,20 @@
+services:
+  mosquitto1:
+    image: eclipse-mosquitto:2.0.7
+    container_name: mosquitto1
+    ports:
+      - "1884:1884"
+    volumes:
+      - ./mosquitto1.conf:/mosquitto/config/mosquitto.conf
+
+  mosquitto2:
+    image: eclipse-mosquitto:2.0.7
+    container_name: mosquitto2
+    ports:
+      - "1885:1885"
+    volumes:
+      - ./mosquitto2.conf:/mosquitto/config/mosquitto.conf
+
+networks:
+  mosquitto-network:
+    driver: bridge
