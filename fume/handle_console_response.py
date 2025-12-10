@@ -19,8 +19,11 @@ def handle_console_response(proc):
 
             if similarity is False and type(g.payload) is bytearray:
                 g.console_response_log[line] = g.payload
+
+                g.local_response_count += 1
+
                 pv.normal_print(
-                    "Found new console response (%d found)"
+                    "Found new console response (%d total)"
                     % len(g.console_response_log.keys())
                 )
 

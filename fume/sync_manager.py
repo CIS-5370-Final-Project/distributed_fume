@@ -23,6 +23,56 @@ class SyncManager:
 
         g.CRASH_DIRECTORY = self.crash_dir
 
+        self.load_initial_state()
+
+    def _process_file(self, filepath):
+        # Prevent re-processing files we already know about
+        if filepath in self.known_files:
+            return 0
+
+        self.known_files.add(filepath)
+        parent_dir = os.path.basename(os.path.dirname(filepath))
+
+        try:
+            with open(filepath, "r") as f:
+                lines = f.readlines()
+                if len(lines) < 2:
+                    return 0
+
+                key = lines[0].strip()
+                payload_hex = lines[1].strip()
+
+                try:
+                    payload_bytes = bytearray.fromhex(payload_hex)
+                except ValueError:
+                    return 0
+
+                # [MEMORY UPDATE] Add to fuzzing state only if new
+                if parent_dir == "network_responses":
+                    if key not in g.network_response_log:
+                        g.network_response_log[key] = payload_bytes
+                        return 1
+                elif parent_dir == "console_responses":
+                    if key not in g.console_response_log:
+                        g.console_response_log[key] = payload_bytes
+                        return 1
+        except Exception as e:
+            pv.debug_print(f"Error reading file {filepath}: {e}")
+
+        return 0
+
+    def load_initial_state(self):
+        pv.normal_print("[INIT] Loading existing responses from sync directory...")
+        # Look for ALL files in the sync directory structure
+        search_pattern = os.path.join(self.base_dir, "*", "*", "*")
+        found_files = glob.glob(search_pattern)
+
+        count = 0
+        for filepath in found_files:
+            count += self._process_file(filepath)
+
+        pv.normal_print(f"[INIT] Loaded {count} existing inputs into memory.")
+
     def save_input(self, category, key, payload):
         target_dir = self.net_dir if category == "network" else self.con_dir
 

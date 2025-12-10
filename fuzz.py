@@ -1,20 +1,26 @@
-import argparse
-import math
 import sys
+import random
+import math
+import argparse  # [ADDED]
+import os  # [ADDED]
 
-sys.path.append("generators")
-sys.path.append("helper_functions")
-sys.path.append("fume")
-sys.path.append("parsers")
+sys.path.append('generators')
+sys.path.append('helper_functions')
+sys.path.append('fume')
+sys.path.append('parsers')
 
-import fume.fuzzing_engine as fe
-import fume.markov_model as mm
-import fume.run_target as rt
-import fume.sync_manager as sm
-import globals as g
+from generators.auth import Auth
+import helper_functions.validate_fuzzing_params as vfp
 import helper_functions.parse_config_file as pcf
 import helper_functions.print_configuration as pc
-import helper_functions.validate_fuzzing_params as vfp
+import helper_functions.crash_logging as cl
+
+import globals as g
+
+import fume.markov_model as mm
+import fume.fuzzing_engine as fe
+import fume.run_target as rt
+import fume.sync_manager as sm  # [ADDED]
 
 
 def calculate_X1():
@@ -30,30 +36,24 @@ def calculate_X3():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="FUME: Fuzzing MQTT Brokers")
+    # [MODIFIED] Use argparse for cleaner argument handling
+    parser = argparse.ArgumentParser(description='FUME: Fuzzing MQTT Brokers')
 
-    parser.add_argument("config_file", nargs="?", help="Path to configuration file")
+    parser.add_argument('config_file', nargs='?', help='Path to configuration file')
 
-    parser.add_argument(
-        "-o",
-        "--output",
-        help="Output directory for sync data (Required for parallel mode)",
-        default="fume_sync",
-    )
+    # [PARALLELIZATION] Arguments for output directory and instance mode
+    parser.add_argument('-o', '--output', help='Output directory for sync data (Required for parallel mode)',
+                        default='fume_sync')
 
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("-M", "--master", help="Master instance name")
-    group.add_argument("-S", "--secondary", help="Secondary instance name")
+    group.add_argument('-M', '--master', help='Master instance name')
+    group.add_argument('-S', '--secondary', help='Secondary instance name')
 
     args = parser.parse_args()
 
-    # if args.secondary and args.config_file:
-    #     print("Error: Secondary instances cannot use a configuration file.")
-    #     exit(-1)
-
     if args.config_file:
         try:
-            config_f = open(args.config_file, "r")
+            config_f = open(args.config_file, 'r')
             config = config_f.readlines()
             pcf.parse_config_file(config)
             config_f.close()
@@ -61,6 +61,7 @@ def main():
             print("Could not find the supplied file: %s" % args.config_file)
             exit(-1)
 
+    # [PARALLELIZATION] Set global state based on arguments
     g.SYNC_DIRECTORY = args.output
 
     if args.master:
@@ -76,6 +77,7 @@ def main():
         g.IS_MASTER = True
         print(f"[*] Mode: STANDALONE (Defaulting to {g.INSTANCE_ID})")
 
+    # [PARALLELIZATION] Initialize the manager (creates dirs, loads initial state)
     g.sync_manager = sm.SyncManager()
 
     if g.user_supplied_X[0] == 0:
@@ -93,7 +95,11 @@ def main():
 
     rt.run_target()
 
-    fe.run_fuzzing_engine(markov_model)
+    try:
+        fe.run_fuzzing_engine(markov_model)
+    except KeyboardInterrupt:
+        print("\n\nQuitting ... ")
+        print(f"Total responses found during this iteration: {g.local_response_count}")
 
 
 if __name__ == "__main__":

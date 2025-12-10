@@ -19,8 +19,11 @@ def handle_network_response(recv):
             G_fields = str(parser.parser.G_fields)
             if G_fields not in g.network_response_log.keys():
                 g.network_response_log[G_fields] = g.payload
+
+                g.local_response_count += 1
+
                 pv.normal_print(
-                    "Found new network response (%d found)"
+                    "Found new network response (%d total)"
                     % len(g.network_response_log.keys())
                 )
 

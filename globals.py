@@ -46,3 +46,5 @@ SYNC_DIRECTORY = "fume_sync"
 INSTANCE_ID = "default"
 IS_MASTER = True
 sync_manager = None
+
+local_response_count = 0
