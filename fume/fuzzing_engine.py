@@ -1,31 +1,29 @@
-from generators.connect import Connect
-from generators.connack import Connack
-from generators.publish import Publish
-from generators.puback import Puback
-from generators.pubrec import Pubrec
-from generators.pubrel import Pubrel
-from generators.pubcomp import Pubcomp
-from generators.subscribe import Subscribe
-from generators.suback import Suback
-from generators.unsubscribe import Unsubscribe
-from generators.unsuback import Unsuback
-from generators.pingreq import Pingreq
-from generators.pingresp import Pingresp
-from generators.disconnect import Disconnect
-from generators.auth import Auth
+import binascii
+import random
+import socket
 
 import handle_network_response as hnr
 import requests_queue as rq
 
-import helper_functions.print_verbosity as pv
+import globals as g
 import helper_functions.crash_logging as cl
 import helper_functions.get_payload_length as gpl
-
-import globals as g
-
-import random
-import binascii
-import socket
+import helper_functions.print_verbosity as pv
+from generators.auth import Auth
+from generators.connack import Connack
+from generators.connect import Connect
+from generators.disconnect import Disconnect
+from generators.pingreq import Pingreq
+from generators.pingresp import Pingresp
+from generators.puback import Puback
+from generators.pubcomp import Pubcomp
+from generators.publish import Publish
+from generators.pubrec import Pubrec
+from generators.pubrel import Pubrel
+from generators.suback import Suback
+from generators.subscribe import Subscribe
+from generators.unsuback import Unsuback
+from generators.unsubscribe import Unsubscribe
 
 
 def corpus_to_array(file):
@@ -108,6 +106,8 @@ def handle_nonbof_state():
         return
 
     maxlen = len(g.payload) * g.FUZZING_INTENSITY
+    if maxlen < 1:
+        maxlen = 1
     inject_len = random.randint(1, round(maxlen))
     inject_payload = random.getrandbits(8 * inject_len).to_bytes(inject_len, "little")
 
@@ -126,6 +126,8 @@ def handle_delete_state():
         return
 
     maxlen = len(g.payload) * g.FUZZING_INTENSITY
+    if maxlen < 1:
+        maxlen = 1
     delete_len = random.randint(1, round(maxlen))
 
     for d in range(delete_len):
@@ -140,6 +142,8 @@ def handle_delete_state():
 
 def handle_mutate_state():
     maxlen = len(g.payload) * g.FUZZING_INTENSITY
+    if maxlen < 1:
+        maxlen = 1
     mutate_len = random.randint(1, round(maxlen))
     mutate_payload = random.getrandbits(8 * mutate_len).to_bytes(mutate_len, "little")
 

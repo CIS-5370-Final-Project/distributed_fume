@@ -1,5 +1,6 @@
-import globals as g
 import random
+
+import globals as g
 
 
 class Node:
@@ -75,7 +76,7 @@ def initialize_markov_model():
         mm.state_subscribe,
         mm.state_suback,
         mm.state_unsubscribe,
-        mm.state_suback,
+        mm.state_unsuback,
         mm.state_pingreq,
         mm.state_pingresp,
         mm.state_disconnect,
