@@ -1,5 +1,4 @@
 import globals as g
-from colorama import Fore
 
 
 def verbose_print(string):
@@ -18,6 +17,6 @@ def debug_print(string):
 
 
 def print_error(string):
-    print(Fore.RED)
+    print("ERROR:" + "-" * 100)
     print(string)
-    print(Fore.RESET)
+    print("-" * 100)

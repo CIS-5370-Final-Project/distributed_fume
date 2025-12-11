@@ -23,6 +23,19 @@ services:
     depends_on:
       - fuzzer-master
     restart: unless-stopped
+  fuzzer-third:
+    build: .
+    container_name: dfume-third
+    environment:
+      - FUZZER_MODE=third
+      - INSTANCE_NAME=fuzzer_third
+    volumes:
+      - fume_sync:/app/fume_sync
+    networks:
+      - fuzzer-network
+    depends_on:
+      - fuzzer-master
+    restart: unless-stopped
 
 volumes:
   fume_sync:

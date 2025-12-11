@@ -48,3 +48,6 @@ IS_MASTER = True
 sync_manager = None
 
 local_response_count = 0
+
+# Run duration in minutes (0 = unlimited)
+RUN_DURATION = 0

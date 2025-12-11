@@ -1,6 +1,7 @@
 import binascii
 import random
 import socket
+import time
 
 import handle_network_response as hnr
 import requests_queue as rq
@@ -280,7 +281,20 @@ def handle_state(mm):
 
 
 def run_fuzzing_engine(mm):
+    start_time = time.time()
+    end_time = None
+    if g.RUN_DURATION > 0:
+        end_time = start_time + (g.RUN_DURATION * 60)
+        pv.normal_print(f"Fuzzing will run for {g.RUN_DURATION} minute(s)")
+
     while True:
+        # Check if duration exceeded
+        if end_time and time.time() >= end_time:
+            pv.normal_print(f"Run duration ({g.RUN_DURATION} min) reached. Stopping...")
+            pv.normal_print(
+                f"Total responses found: {len(g.network_response_log) + len(g.console_response_log)}"
+            )
+            break
         if g.sync_manager:
             g.sync_manager.sync()
 
